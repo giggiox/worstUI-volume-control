@@ -7,7 +7,7 @@ canvas.height = window.innerHeight;
 console.log(canvas.height)
 
 let volumeTop = new Image();
-volumeTop.src="./volume.png";
+volumeTop.src="./img/volume.png";
 volumeTop.onload = renderImages;
 let imgCount = 1;
 function renderImages(){
@@ -59,6 +59,36 @@ class Symbol{
         this.dy = Math.sin(angle) * 7;
 		this.gravity = 0.05;
 		this.friction = 0;
+		
+		
+		this.number = Math.floor(Math.random() * (9-1)+1);
+		
+		if(Math.random() < 0.4){
+			this.number = Math.floor(Math.floor(Math.random() * 4));
+			if(this.number == 0){
+				this.number = "plus";
+			}
+			else if(this.number == 1){
+				this.number = "minus";
+			}
+			else if(this.number == 2){
+				this.number = "times";
+			}	
+			else if(this.number == 3){
+				this.number = "div";
+			}
+		}
+		
+		this.image = new Image();
+		this.image.src="./img/" + this.number + ".png";
+		
+		
+		this.deleted = false;
+	}
+	
+	hasInside(x,y){
+		let distance = dis(this.x,this.y,x,y);
+		return distance <= this.radius*3;
 	}
 	
 	update(){
@@ -69,15 +99,26 @@ class Symbol{
 
         this.x += this.dx; 
         this.y += this.dy; 
+		
+		if(this.y > canvas.height) {
+			this.deleted = true;
+		}
 	}
 	
 	draw(){
-		ctx.fillStyle = "black";
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
+		ctx.save();
+        ctx.drawImage(this.image,this.x-20,this.y-95,100,100);
 	}
 }
+
+
+var equation = "2+2";
+
+function drawEquation(){
+	ctx.fillStyle = "black";
+	ctx.fillText(equation,50,90)
+}
+
 
 function animate(){
 	ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -97,8 +138,14 @@ function animate(){
 		
 	}
 	
-	[...symbols].forEach(object => object.update());
-	[...symbols].forEach(object => object.draw());
+	symbols.forEach((element) => {
+		element.update();
+		element.draw();
+	});
+	
+	symbols = symbols.filter(element => !element.deleted);
+
+	drawEquation();
 
 	requestAnimationFrame(animate);
 }
@@ -121,6 +168,30 @@ function sortBallPos(x, y) {
         y: newY
     }
 }
+
+
+canvas.addEventListener("mousemove", e => {
+    mousePos = {
+        x: e.clientX - canvas.offsetLeft,
+        y: e.clientY - canvas.offsetTop
+    }
+});
+let mousePos = null;
+canvas.addEventListener("click", e => {
+	for(let i = 0;i<symbols.length;i++){
+		let distance = Math.sqrt(Math.pow(symbols[i].x-mousePos.x,2) + Math.pow(symbols[i].y-mousePos.y,2))
+		console.log(mousePos)
+		console.log(symbols[symbols.length-1]);
+        if(distance <= 90){
+			console.log("colpito");
+			symbols[i].deleted = true;
+		}			
+	}
+	//console.log(symbols[0]);
+	
+	console.log(symbols);
+})
+
 
 
 
