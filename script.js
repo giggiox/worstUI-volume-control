@@ -3,8 +3,7 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-
-console.log(canvas.height)
+ctx.font = '40px impact';
 
 let volumeTop = new Image();
 volumeTop.src="./img/volume.png";
@@ -44,12 +43,13 @@ class Volume{
     }
 }
 
-let volume = new Volume(58,400);
+let volume = new Volume(58,500);
 
 
 let symbols = []
 class Symbol{
-	constructor(angle,x,y){
+	
+	constructor(angle,x,y,number = null){
 		this.radius = 35;
         this.mass = this.radius/2;
         this.angle = angle;
@@ -60,23 +60,28 @@ class Symbol{
 		this.gravity = 0.05;
 		this.friction = 0;
 		
-		
-		this.number = Math.floor(Math.random() * (9-1)+1);
-		
-		if(Math.random() < 0.4){
-			this.number = Math.floor(Math.floor(Math.random() * 4));
-			if(this.number == 0){
-				this.number = "plus";
+		if(number == null){
+			this.number = Math.floor(Math.random() * (10-1))+1;
+			if(Math.random() < 0.7){
+				this.number = Math.floor(Math.floor(Math.random() * 6));
+				if(this.number == 0){
+					this.number = "plus";
+				}
+				else if(this.number == 1){
+					this.number = "minus";
+				}
+				else if(this.number == 2){
+					this.number = "times";
+				}	
+				else if(this.number == 3){
+					this.number = "div";
+				}
+				else if(this.number == 5){
+					this.number = "equals";
+				}
 			}
-			else if(this.number == 1){
-				this.number = "minus";
-			}
-			else if(this.number == 2){
-				this.number = "times";
-			}	
-			else if(this.number == 3){
-				this.number = "div";
-			}
+		}else{
+			this.number = number;
 		}
 		
 		this.image = new Image();
@@ -87,8 +92,8 @@ class Symbol{
 	}
 	
 	hasInside(x,y){
-		let distance = dis(this.x,this.y,x,y);
-		return distance <= this.radius*3;
+		let distance = Math.sqrt(Math.pow(this.x-x,2),Math.pow(this.y-y),2);
+		return distance <= this.radius*2.5;
 	}
 	
 	update(){
@@ -112,12 +117,7 @@ class Symbol{
 }
 
 
-var equation = "2+2";
 
-function drawEquation(){
-	ctx.fillStyle = "black";
-	ctx.fillText(equation,50,90)
-}
 
 
 function animate(){
@@ -134,7 +134,7 @@ function animate(){
 		angle = Math.random() * (-1 - (-0.2)) -0.2;
 		setTimeout(() => {
 			canShoot = true;
-		}, 500);
+		}, 400);
 		
 	}
 	
@@ -143,9 +143,28 @@ function animate(){
 		element.draw();
 	});
 	
+	equations.forEach((element) => {
+		element.draw();
+	});
+	
+	
+	currentVolumeSymbols.forEach((element) => {
+		element.draw();
+	});
+	
 	symbols = symbols.filter(element => !element.deleted);
 
-	drawEquation();
+
+	ctx.fillStyle = "black";
+	ctx.fillText("volume:",160,555);
+	
+	ctx.beginPath();
+    ctx.moveTo(volume.x,volume.y+70);
+    ctx.lineTo(volume.x,volume.y+240);
+	ctx.lineTo(volume.x+300,volume.y+240);
+	ctx.lineTo(volume.x+300,volume.y+70);
+	ctx.lineTo(volume.x,volume.y+70);
+    ctx.stroke();
 
 	requestAnimationFrame(animate);
 }
@@ -177,22 +196,101 @@ canvas.addEventListener("mousemove", e => {
     }
 });
 let mousePos = null;
+
+var equations = [];
+var currentVolume = [50];
+var currentVolumeSymbols = [];
+
+function displayCurrentVolume(){
+	let strCurrentVolume = "" + currentVolume[0];
+	
+	let positions = [0,0,0];
+	if(strCurrentVolume.length == 1){
+		positions[0] = 180;
+	}else if(strCurrentVolume.length == 2){
+		positions[0] = 130;
+		positions[1] = 230;
+	}else{
+		positions[0] = 80;
+		positions[1] = 180;
+		positions[2] = 280;
+	}
+	for (let i = 0;i < strCurrentVolume.length;i++){
+		currentVolumeSymbols.push(
+			new Symbol(0,positions[i],700,strCurrentVolume[i])
+		);
+	}
+	
+	/**
+	if (currentVolume > 80){
+		volumeTop.src="./img/volume3.png";
+	}else if(currentVolume > 40){
+		volumeTop.src="./img/volume2.png";
+	}else if(currentVolume > 20){
+		volumeTop.src="./img/volume1.png";
+	}else{
+		volumeTop.src="./img/volume0.png";
+	}**/
+}
+displayCurrentVolume();
+
+function calculateResult(){
+	let operand = equations[0].number;
+	let number = "";
+	for(let i = 1;i < equations.length;i++){
+		number += equations[i].number;
+	}
+	number = parseInt(number, 10);
+	let tmpRes = 0;
+	if(operand == "plus"){
+		tmpRes = currentVolume[0] + number;
+	}else if(operand == "minus"){
+		tmpRes = currentVolume[0] - number;
+	}else if(operand == "times"){
+		tmpRes = currentVolume[0] * number;
+	}else if(operand == "div"){
+		tmpRes = Math.floor(currentVolume / number);
+	}
+	if(tmpRes < 0) tmpRes = 0;
+	if(tmpRes > 100) tmpRes = 100;
+	currentVolume[0] = tmpRes;
+	
+
+	
+}
+
 canvas.addEventListener("click", e => {
 	for(let i = 0;i<symbols.length;i++){
-		let distance = Math.sqrt(Math.pow(symbols[i].x-mousePos.x,2) + Math.pow(symbols[i].y-mousePos.y,2))
-		console.log(mousePos)
-		console.log(symbols[symbols.length-1]);
-        if(distance <= 90){
-			console.log("colpito");
-			symbols[i].deleted = true;
+
+        if(symbols[i].hasInside(mousePos.x,mousePos.y)){
+			//collision detected
+			if(equations.length < 3){
+				if((symbols[i].number == "minus" || symbols[i].number == "plus"
+					|| symbols[i].number == "times" || symbols[i].number == "div") && equations.length == 0){
+					equations.push(new Symbol(0,400 + equations.length*100,700,symbols[i].number));
+					symbols[i].deleted = true;
+				}else if(!(symbols[i].number == "minus" || symbols[i].number == "plus"
+					|| symbols[i].number == "times" || symbols[i].number == "div") && equations.length != 0){
+					equations.push(new Symbol(0,400 + equations.length*100,700,symbols[i].number));
+					symbols[i].deleted = true;
+				}
+			}
+			
+			if(equations.length >2 && symbols[i].number == "equals"){
+				calculateResult();
+				while(equations.length > 0){
+					equations.pop();
+				}				
+				while (currentVolumeSymbols.length > 0) {
+					currentVolumeSymbols.pop();
+				}
+				displayCurrentVolume();
+				
+			}
+			
 		}			
 	}
-	//console.log(symbols[0]);
-	
-	console.log(symbols);
 })
-
-
 
 
 
