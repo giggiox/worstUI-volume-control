@@ -49,7 +49,7 @@ let volume = new Volume(58,500);
 let symbols = []
 class Symbol{
 	
-	constructor(angle,x,y,number = null){
+	constructor(angle,x,y,number = null,dimension = 100){
 		this.radius = 35;
         this.mass = this.radius/2;
         this.angle = angle;
@@ -59,6 +59,8 @@ class Symbol{
         this.dy = Math.sin(angle) * 7;
 		this.gravity = 0.05;
 		this.friction = 0;
+		
+		this.dimension = dimension;
 		
 		if(number == null){
 			this.number = Math.floor(Math.random() * (10-1))+1;
@@ -112,7 +114,7 @@ class Symbol{
 	
 	draw(){
 		ctx.save();
-        ctx.drawImage(this.image,this.x-20,this.y-95,100,100);
+        ctx.drawImage(this.image,this.x-20,this.y-95,this.dimension,this.dimension);
 	}
 }
 
@@ -156,12 +158,12 @@ function animate(){
 
 
 	ctx.fillStyle = "black";
-	ctx.fillText("volume:",160,555);
+	ctx.fillText("volume:",140,555);
 	
 	ctx.beginPath();
     ctx.moveTo(volume.x,volume.y+70);
-    ctx.lineTo(volume.x,volume.y+240);
-	ctx.lineTo(volume.x+300,volume.y+240);
+    ctx.lineTo(volume.x,volume.y+200);
+	ctx.lineTo(volume.x+300,volume.y+200);
 	ctx.lineTo(volume.x+300,volume.y+70);
 	ctx.lineTo(volume.x,volume.y+70);
     ctx.stroke();
@@ -198,7 +200,7 @@ canvas.addEventListener("mousemove", e => {
 let mousePos = null;
 
 var equations = [];
-var currentVolume = [50];
+var currentVolume = [100];
 var currentVolumeSymbols = [];
 
 function displayCurrentVolume(){
@@ -208,16 +210,16 @@ function displayCurrentVolume(){
 	if(strCurrentVolume.length == 1){
 		positions[0] = 180;
 	}else if(strCurrentVolume.length == 2){
-		positions[0] = 130;
-		positions[1] = 230;
+		positions[0] = 150;
+		positions[1] = 210;
 	}else{
-		positions[0] = 80;
-		positions[1] = 180;
-		positions[2] = 280;
+		positions[0] = 130;
+		positions[1] = 190;
+		positions[2] = 250;
 	}
 	for (let i = 0;i < strCurrentVolume.length;i++){
 		currentVolumeSymbols.push(
-			new Symbol(0,positions[i],700,strCurrentVolume[i])
+			new Symbol(0,positions[i],700,strCurrentVolume[i],50)
 		);
 	}
 	
@@ -267,16 +269,17 @@ canvas.addEventListener("click", e => {
 			if(equations.length < 3){
 				if((symbols[i].number == "minus" || symbols[i].number == "plus"
 					|| symbols[i].number == "times" || symbols[i].number == "div") && equations.length == 0){
-					equations.push(new Symbol(0,400 + equations.length*100,700,symbols[i].number));
+					equations.push(new Symbol(0,400 + equations.length*100,700,symbols[i].number,50));
 					symbols[i].deleted = true;
 				}else if(!(symbols[i].number == "minus" || symbols[i].number == "plus"
-					|| symbols[i].number == "times" || symbols[i].number == "div") && equations.length != 0){
-					equations.push(new Symbol(0,400 + equations.length*100,700,symbols[i].number));
+					|| symbols[i].number == "times" || symbols[i].number == "div" || symbols[i].number == "equals") && equations.length != 0){
+					equations.push(new Symbol(0,400 + equations.length*60,700,symbols[i].number,50));
 					symbols[i].deleted = true;
 				}
 			}
 			
-			if(equations.length >2 && symbols[i].number == "equals"){
+			if(equations.length >1 && symbols[i].number == "equals"){
+				symbols[i].deleted = true;
 				calculateResult();
 				while(equations.length > 0){
 					equations.pop();
