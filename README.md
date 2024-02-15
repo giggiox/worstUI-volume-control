@@ -1,3 +1,5 @@
 My entry for the worst UI competition.
-Please tell me this is bad.
+
+Hope you find this awful 🤗
+
 ![](demo.gif)
